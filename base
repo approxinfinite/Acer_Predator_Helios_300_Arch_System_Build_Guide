@@ -161,7 +161,19 @@ Add to boot options by clicking e on boot screen: modprobe.blacklist=nouveau
 #40 -> Install nvidia driver
     pacman -S nvidia-lts mesa-utils xorg-server-devel opencl-nvidia
 
-#41 -> Setup Optimus - graphics switching
+    
+#41 -> Install git
+    sudo pacman -S git
+
+#42 -> Setup yay (AUR Helper)
+    cd /opt
+    sudo git clone https://aur.archlinux.org/yay-git.git
+    sudo chown -R shadow ./yay-git
+    cd yay-git
+    makepkg -si
+ 
+ 
+#43 -> Setup Optimus - graphics switching
     ------------------------------------------------------
     For switching between nvidia and intel graphics
     ______________________________________________________
@@ -194,23 +206,13 @@ Add to boot options by clicking e on boot screen: modprobe.blacklist=nouveau
     sudo pacman -S virtualgl
     glxspheres64
 
-#42 -> Edit /boot/loader/entries/arch.conf and reboot
+#44 -> Edit /boot/loader/entries/arch.conf and reboot
     title arch
     linux /vmlinuz-linux-g14
     initrd /intel-ucode.img
     initrd /initramfs-linux-g14.img
     options rw root=/dev/nvme0n1p3 resume=/dev/nvme0n1p2 pci=noaer nvidia-drm.modeset=0 quiet splash
     
-#43 -> Install git
-    sudo pacman -S git
-
-#44 -> Setup yay (AUR Helper)
-    cd /opt
-    sudo git clone https://aur.archlinux.org/yay-git.git
-    sudo chown -R shadow ./yay-git
-    cd yay-git
-    makepkg -si
- 
  #45 -> Setup gnome-tweaks
      sudo pacman -S gnome-tweaks
      yay -S chrome-gnome-shell
