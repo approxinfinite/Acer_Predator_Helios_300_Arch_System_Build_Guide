@@ -205,6 +205,15 @@ Add to boot options by clicking e on boot screen: modprobe.blacklist=nouveau
     options nvidia-drm modeset=1
     ---------------------------------------------------------------
     sudo mkinitcpio -p linux-lts
+    # Edit /boot/loader/entries/arch.conf and reboot
+    ---------------------------------------------------------------
+    # Add below lines
+    title arch
+    linux /vmlinuz-linux-g14
+    initrd /intel-ucode.img
+    initrd /initramfs-linux-g14.img
+    options rw root=/dev/nvme0n1p3 resume=/dev/nvme0n1p2 pci=noaer nvidia-drm.modeset=0 quiet splash
+    ---------------------------------------------------------------
     # reboot and login using gnome on xorg from gear  icon at right bottom in the login screen
     
 #41 -> Install git
@@ -238,23 +247,16 @@ Add to boot options by clicking e on boot screen: modprobe.blacklist=nouveau
 
     sudo pacman -S virtualgl
     glxspheres64
-
-#44 -> Edit /boot/loader/entries/arch.conf and reboot
-    title arch
-    linux /vmlinuz-linux-g14
-    initrd /intel-ucode.img
-    initrd /initramfs-linux-g14.img
-    options rw root=/dev/nvme0n1p3 resume=/dev/nvme0n1p2 pci=noaer nvidia-drm.modeset=0 quiet splash
     
- #45 -> Setup gnome-tweaks
+#44 -> Setup gnome-tweaks
      sudo pacman -S gnome-tweaks
      yay -S chrome-gnome-shell
 
-#46 -> Install comic fonts and theme
+#45 -> Install comic fonts and theme
     yay -S comic-mono-font
     pacman -S deepin-icon-theme deepin-gtk-theme
 
-#47 -> Predator kernel module for turbo mode and keyboard rgb settings
+#46 -> Predator kernel module for turbo mode and keyboard rgb settings
     git clone https://github.com/JafarAkhondali/acer-helios-300-rgb-keyboard-linux-module
     cd "acer-helios-300-rgb-keyboard-linux-module"
     chmod +x ./*.sh
