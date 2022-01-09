@@ -204,7 +204,8 @@ Add to boot options by clicking e on boot screen: modprobe.blacklist=nouveau
     # Add below lines
     options nvidia-drm modeset=1
     ---------------------------------------------------------------
-    reboot and login using gnome on xorg from gear  icon at right bottom in the login screen
+    sudo mkinitcpio -p linux-lts
+    # reboot and login using gnome on xorg from gear  icon at right bottom in the login screen
     
 #41 -> Install git
     sudo pacman -S git
