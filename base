@@ -253,7 +253,7 @@ Add to boot options by clicking e on boot screen: modprobe.blacklist=nouveau
      yay -S chrome-gnome-shell
 
 #45 -> Install comic fonts and theme
-    yay -S comic-mono-font
+    yay -S ttf-comic-mono-git
     pacman -S deepin-icon-theme deepin-gtk-theme
 
 #46 -> Predator kernel module for turbo mode and keyboard rgb settings
