@@ -1,0 +1,226 @@
+Add to boot options by clicking e on boot screen: modprobe.blacklist=nouveau
+
+#0 -> Connect to Internet
+    iwctl
+    device list
+    station wlan0 connect Zenos_5g
+
+#1 -> Check you are connected with a ping test
+    ping -c 3 archlinux.org
+
+#2 -> Synchronize with network time
+    timedatectl set-ntp true
+
+#3 -> Update your mirrorlist
+    reflector --verbose --latest 200 --sort rate --save /etc/pacman.d/mirrorlist
+
+#4 -> Install terminus-font
+    pacman -Sy terminus-font
+
+#5 -> setfont
+    setfont ter-v24b
+
+#6 -> Check available disks
+    lsblk
+
+#7 -> Partition disk create 4 partitions [nvme0n1p1 as boot(20) +1G, nvme0n1p2 as swap(19) +20G, nvme0n1p3 as root(20) +{{remaining}}G]
+    fdisk /dev/nvme0n1
+    # g - create a new gpt id
+    # n - new partition
+    # +dGiB - d belongs to a positive number
+    # t - set type
+    # w - write all the changes
+
+#8 -> Format Boot partition
+    mkfs.fat -F 32 /dev/nvme0n1p1
+
+#9 -> Format ext, Root partition
+    mkfs.ext4 /dev/nvme0n1p3
+
+#10 -> Format swap partition
+    mkswap /dev/nvme0n1p2
+
+#11 -> Activate swap
+    swapon /dev/nvme0n1p2
+
+#12 -> Mount root partition
+    mount /dev/nvme0n1p3 /mnt
+
+#13 -> Make directory for boot partition
+    mkdir /mnt/boot
+
+#14 -> Mount boot partition, Also generate fstab
+    mount /dev/nvme0n1p1 /mnt/boot
+
+#15 -> Pacstrap
+    pacstrap /mnt base base-devel linux-lts linux-firmware linux-lts-headers efibootmgr mtools dosfstools vim iwd zsh ntfs-3g
+
+#16 -> Copy systemd network configuration files and generate fstab
+    cp /etc/systemd/network/* /mnt/etc/systemd/network
+    genfstab -U /mnt >> /mnt/etc/fstab
+
+#17 -> Change root to new system
+    arch-chroot /mnt
+
+#18 -> Installing processor microcode
+    pacman -S intel-ucode xf86-video-intel
+
+#19 -> Symlinking localtime
+    ln -sf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
+
+#20 -> Synchronize with network time
+    timedatectl set-ntp true
+
+#21 -> Synchronize with hardware clock
+    hwclock --systohc
+
+#22 -> Adjust system clock from real time clock
+    timedatectl set-local-rtc 1 --adjust-system-clock
+
+#23 -> Setup locale
+    vim /etc/locale.gen
+    # Uncomment your locale
+
+#24 -> Generate locale
+    locale-gen
+
+#25 -> Create locale.conf
+    vim /etc/locale.conf
+    # Add the below line with your locale info
+    LANG=en_US.UTF-8
+
+#26 -> Set your hostname
+    vim /etc/hostname
+    # Add something like below line
+    approxinfinite
+
+#27 -> Set your hosts
+    vim /etc/hosts
+    # Add the below lines by making required changes
+    127.0.0.1   localhost
+    ::1         localhost
+    127.0.1.1   approxinfinite.localdomain   approxinfinite
+
+#28 -> Set root password
+    passwd
+
+#29 -> Install systemd-boot
+    bootctl install
+
+#30 -> Create a boot entry
+    vim /boot/loader/entries/arch.conf
+    # Add the below lines by making required changes
+    title Arch
+    linux /vmlinuz-linux-lts
+    initrd /intel-ucode.img
+    initrd /initramfs-linux-lts.img
+    options rw root=/dev/nvme0n1p3 resume=/dev/nvme0n1p2 pci=noaer quiet splash modprobe.blacklist=nouveau
+
+#31 -> Configure bootloader
+    vim /boot/loader/loader.conf
+    # Add the below lines by making required changes
+    #timeout 3
+    default arch
+
+#32 -> Configure mkinitcpio
+    vim /etc/mkinitcpio.conf
+    # Update "HOOKS=(base udev autodetect modconf block filesystems keyboard fsck)" to
+    HOOKS=(base udev autodetect modconf block filesystems keyboard resume fsck)
+
+#33 -> generate initramfs  
+    mkinitcpio -p linux-lts
+
+#34 -> Install  gnome
+    pacman -S gnome networkmanager
+    
+#35 -> User creation
+    useradd -m -g wheel light
+    passwd light
+
+#36 -> EDITOR=vim visudo
+    # uncomment below line
+    %wheel ALL=(ALL) ALL
+
+#37 -> Enable required services
+    systemctl enable systemd-networkd
+    systemctl enable systemd-resolved
+    systemctl enable systemd-timesyncd
+    systemctl enable NetworkManager
+    systemctl enable bluetooth
+    systemctl enable gdm
+
+#38 -> Final Steps
+    exit
+    umount -a
+    reboot
+    login as light
+
+#39 -> Install Firefox
+    sudo pacman -S firefox    
+    
+#40 -> Install nvidia driver
+    pacman -S nvidia-lts mesa-utils xorg-server-devel opencl-nvidia
+
+#41 -> Setup Optimus - graphics switching
+    ------------------------------------------------------
+    For switching between nvidia and intel graphics
+    ______________________________________________________
+
+    yay -S gdm-prime
+    yay -S optimus-manager
+
+    optimus-manager --switch nvidia
+    optimus-manager --switch integrated
+    optimus-manager --switch hybrid
+
+    optimus-manager --print-mode
+
+    ------------------------------------------------------
+    For getting stats of intel graphics
+    ______________________________________________________
+    sudo pacman -S intel-gpu-tools
+
+    sudo intel_gpu_top
+
+    https://helpmanual.io/packages/apt/intel-gpu-tools/
+    ------------------------------------------------------
+    For getting stats of nvidia graphics
+    ______________________________________________________
+    nvidia-smi
+
+    sudo pip install gpustat
+    sudo gpustat
+
+    sudo pacman -S virtualgl
+    glxspheres64
+
+#42 -> Edit /boot/loader/entries/arch.conf and reboot
+    title arch
+    linux /vmlinuz-linux-g14
+    initrd /intel-ucode.img
+    initrd /initramfs-linux-g14.img
+    options rw root=/dev/nvme0n1p3 resume=/dev/nvme0n1p2 pci=noaer nvidia-drm.modeset=0 quiet splash
+    
+#43 -> Install git
+    sudo pacman -S git
+
+#44 -> Setup yay (AUR Helper)
+    cd /opt
+    sudo git clone https://aur.archlinux.org/yay-git.git
+    sudo chown -R shadow ./yay-git
+    cd yay-git
+    makepkg -si
+ 
+ #45 -> Setup gnome-tweaks
+     sudo pacman -S gnome-tweaks
+     yay -S chrome-gnome-shell
+
+#46 -> Install comic fonts and theme
+    yay -S comic-mono-font
+    pacman -S deepin-icon-theme deepin-gtk-theme
+
+#47 -> Predator kernel module for turbo mode and keyboard rgb settings
+    git clone https://github.com/JafarAkhondali/acer-helios-300-rgb-keyboard-linux-module
+    cd "acer-helios-300-rgb-keyboard-linux-module"
+    chmod +x ./*.sh
+    sudo ./install_service.sh
